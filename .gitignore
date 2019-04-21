@@ -34,3 +34,6 @@ eagle.epf
 *.info
 
 *.eps
+
+#dxf beckup file
+*.dxf~
