@@ -1,5 +1,13 @@
 #include <Adafruit_NeoPixel.h>
 
+struct DisplayState
+{
+	bool numbers;
+	bool colon;
+	bool alarm;
+	bool temperatureMarkers;
+};
+
 class Display
 {
 public:
@@ -8,7 +16,7 @@ public:
 	void setBrightness(uint8_t brightness);
 	void setColor(uint32_t color);
 	void fillColor(uint32_t color);
-	void setNumber(uint8_t number, uint8_t charNumber);
+	void setNumber(int8_t number, uint8_t charNumber);
 	void displayClear();
 	void setAnimatedColon(bool onOff);
 	void setTime(uint8_t hh, uint8_t mm);
@@ -20,12 +28,22 @@ public:
 	void setTempInColor(uint32_t color);
 	void setTempOutColor(uint32_t color);
 
+	void cleanSegment(uint8_t segmentNumber);
+	void cleanAllSegments();
+
+	void displayOff(bool numbers, bool colon, bool alarm, bool temperatureMarkers);
+	void displayOn();
+	bool getDisplayState();
+
 private:
 	Adafruit_NeoPixel * pixel;
 
 	uint32_t numberColor;
 	bool colonState;
 	bool colonAnimation;
+
+	DisplayState displayState;
+
 
 	bool signs[16][7] = 	{{1,1,1,0,1,1,1},	//0
 				 {0,0,1,0,0,0,1},	//1

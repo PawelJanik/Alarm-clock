@@ -16,8 +16,13 @@ Display::Display(Adafruit_NeoPixel * Pixel)
 	pixel->begin();
 	pixel->show();
 
-	bool colonState = false;
-	bool colonAnimation = false;
+	colonState = false;
+	colonAnimation = false;
+
+	displayState.numbers = true;
+	displayState.colon = true;
+	displayState.alarm = true;
+	displayState.temperatureMarkers = true;
 }
 
 void Display::displayClear()
@@ -45,17 +50,27 @@ void Display::setColor(uint32_t color)
 
 void Display::setTempInColor(uint32_t color)
 {
+	if(displayState.temperatureMarkers == false)
+	{
+		return;
+	}
+
 	pixel->setPixelColor(32, color);
 	pixel->show();
 }
 
 void Display::setTempOutColor(uint32_t color)
 {
+	if(displayState.temperatureMarkers == false)
+	{
+		return;
+	}
+
 	pixel->setPixelColor(31, color);
 	pixel->show();
 }
 
-void Display::setNumber(uint8_t number, uint8_t charNumber)
+void Display::setNumber(int8_t number, uint8_t charNumber)
 {
 	uint8_t shiftValue = 0;
 
@@ -65,16 +80,25 @@ void Display::setNumber(uint8_t number, uint8_t charNumber)
 		case 2:	shiftValue = 16;break;
 		case 3:	shiftValue = 23;break;
 	}
-
-	for(uint8_t i = 0; i < 7; i++)
+	if(number < 0)
 	{
-		if(signs[number][i] == true)
-		{
-			pixel->setPixelColor(i + shiftValue, numberColor);
-		}
-		else
+		for(uint8_t i = 0; i < 7; i++)
 		{
 			pixel->setPixelColor(i + shiftValue, 0);
+		}
+	}
+	else
+	{
+		for(uint8_t i = 0; i < 7; i++)
+		{
+			if(signs[number][i] == true)
+			{
+				pixel->setPixelColor(i + shiftValue, numberColor);
+			}
+			else
+			{
+				pixel->setPixelColor(i + shiftValue, 0);
+			}
 		}
 	}
 
@@ -88,8 +112,14 @@ void Display::setAnimatedColon(bool onOff)
 
 void Display::setTime(uint8_t hh, uint8_t mm)
 {
+	if(displayState.numbers == false)
+	{
+		return;
+	}
+
 	if(hh < 10)
 	{
+		cleanSegment(0);
 		setNumber(hh, 1);
 	}
 	else
@@ -133,6 +163,11 @@ void Display::animation()
 
 void Display::setAlarm(bool onOff)
 {
+	if(displayState.alarm == false)
+	{
+		return;
+	}
+
 	if(onOff == true)
 	{
 		pixel->setPixelColor(30, numberColor);
@@ -142,4 +177,58 @@ void Display::setAlarm(bool onOff)
 		pixel->setPixelColor(30, 0);
 	}
 	pixel->show();
+}
+
+void Display::cleanSegment(uint8_t segmentNumber)
+{
+	setNumber(-1, segmentNumber);
+}
+
+void Display::cleanAllSegments()
+{
+	for(uint8_t i = 0; i < 4; i++)
+	{
+		cleanSegment(i);
+	}
+}
+
+void Display::displayOff(bool numbers, bool colon, bool alarm, bool temperatureMarkers)
+{
+	if(numbers == false)
+	{
+		cleanAllSegments();
+		displayState.numbers = false;
+	}
+
+	if(colon == false)
+	{
+		colonAnimation = false;
+		displayState.colon = false;
+	}
+
+	if(alarm == false)
+	{
+		setAlarm(false);
+		displayState.alarm = false;
+	}
+
+	if(temperatureMarkers == false)
+	{
+		setTempInColor(0);
+		setTempOutColor(0);
+		displayState.temperatureMarkers = false;
+	}
+}
+
+void Display::displayOn()
+{
+	displayState.numbers = true;
+	displayState.colon = true;
+	displayState.alarm = true;
+	displayState.temperatureMarkers = true;
+}
+
+bool Display::getDisplayState()
+{
+
 }
